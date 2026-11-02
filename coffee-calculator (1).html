@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coffee savings calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --panel: #171615;
+    --line: #2a2825;
+    --text: #f3ede2;
+    --muted: #8f8a82;
+    --gold: #c9a961;
+    --gold-light: #e2cf9f;
+    --bar: #6f6558;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 56px 24px 64px; }
+  .eyebrow { margin: 0; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+  h1 {
+    margin: 22px 0 18px;
+    font-family: "Playfair Display", serif;
+    font-weight: 400;
+    font-size: clamp(32px, 5.4vw, 60px);
+    line-height: 1.1;
+  }
+  h1 em { color: var(--gold-light); }
+  .sub { margin: 0; max-width: 540px; font-size: 17px; line-height: 1.45; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 32px; margin-top: 48px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 32px 34px; }
+  .row { padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .row:first-child { padding-top: 0; }
+  .row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .rowhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .lab { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .num { font-family: "Playfair Display", serif; font-size: 30px; font-weight: 500; }
+  .hint { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 22px; margin: 14px 0 0; background: transparent; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(to right, var(--gold) var(--p, 0%), #2e2c29 var(--p, 0%)); }
+  input[type=range]::-moz-range-track { height: 2px; background: #2e2c29; }
+  input[type=range]::-moz-range-progress { height: 2px; background: var(--gold); }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; margin-top: -9px;
+    border-radius: 50%; background: var(--panel); border: 2px solid var(--gold);
+  }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--panel); border: 2px solid var(--gold); }
+  input[type=range]:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+  .toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .toggle button {
+    font: inherit; font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 14px 0; color: var(--muted); background: transparent;
+    border: 1px solid var(--line); border-radius: 2px; cursor: pointer;
+  }
+  .toggle button.on { color: var(--gold); border-color: var(--gold); }
+  .save-label { margin: 0; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+  .big { margin: 22px 0 6px; font-family: "Playfair Display", serif; font-size: clamp(64px, 9vw, 104px); line-height: 1; color: var(--gold-light); }
+  .after { margin: 0 0 32px; font-size: 20px; color: var(--muted); }
+  .bars { display: grid; gap: 18px; }
+  .bar-head { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; }
+  .track { height: 14px; background: #24221f; }
+  .fill { height: 100%; width: 0; transition: width 0.25s ease; }
+  .fill.cafe { background: var(--bar); }
+  .fill.home { background: var(--gold); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 32px; border-top: 1px solid var(--line); }
+  .stat { padding: 22px 16px 0; border-left: 1px solid var(--line); }
+  .stat:first-child { padding-left: 0; border-left: 0; }
+  .stat .v { font-family: "Playfair Display", serif; font-size: 30px; font-weight: 500; }
+  .stat .l { margin-top: 6px; font-size: 14px; color: var(--muted); line-height: 1.4; }
+  @media (max-width: 520px) { .stats { grid-template-columns: 1fr; } .stat { border-left: 0; padding-left: 0; } }
+  .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 32px; font-size: 15px; }
+  .tbl th { padding: 0 0 12px; text-align: right; font-weight: 400; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); vertical-align: bottom; }
+  .tbl td { padding: 14px 0; text-align: right; border-bottom: 1px solid var(--line); }
+  .tbl tr:last-child td { border-bottom: 0; padding-bottom: 0; }
+  .tbl th:first-child, .tbl td:first-child { text-align: left; width: 24%; }
+  .tbl td.diff { font-weight: 500; }
+  .pos { color: #8fc29a; }
+  .neg { color: #e08a66; }
+  .cta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
+  @media (max-width: 520px) { .cta { grid-template-columns: 1fr; } }
+  .cta a {
+    display: block; text-align: center; text-decoration: none;
+    font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 16px 12px; border-radius: 2px; border: 1px solid var(--gold);
+  }
+  .cta a.solid { background: var(--gold); color: #1a1713; }
+  .cta a.ghost { color: var(--gold); }
+  .cta a:hover { filter: brightness(1.12); }
+  .cta a:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
+  .foot { margin: 24px 0 0; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Coffee savings calculator</p>
+  <h1>What is your café habit <em>really</em> costing you?</h1>
+  <p class="sub">Tell us what you spend on coffee out, and see how much you could keep by brewing barista-quality coffee at home.</p>
+
+  <div class="grid">
+    <section class="panel" aria-label="Your coffee habit">
+      <div class="row">
+        <div class="rowhead"><span class="lab">Your usual café coffee</span><span class="num" id="cafeOut"></span></div>
+        <input id="cafe" type="range" min="2" max="10" step="0.1" value="5.5" aria-label="Café coffee price">
+      </div>
+
+      <div class="row">
+        <div class="rowhead"><span class="lab">Cups you buy</span><span class="num" id="cupsOut"></span></div>
+        <input id="cups" type="range" min="1" max="21" step="1" value="5" aria-label="Cups you buy">
+        <div class="toggle">
+          <button type="button" id="perDay">Per day</button>
+          <button type="button" id="perWeek" class="on">Per week</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="rowhead"><span class="lab">Cost per capsule at home</span><span class="num" id="capOut"></span></div>
+        <input id="cap" type="range" min="0.5" max="1.5" step="0.01" value="0.95" aria-label="Cost per capsule">
+        <p class="hint">Adjust to match the capsule range you'd choose.</p>
+      </div>
+
+      <div class="row">
+        <div class="rowhead"><span class="lab">Machine price</span><span class="num" id="machOut"></span></div>
+        <input id="mach" type="range" min="100" max="800" step="10" value="250" aria-label="Machine price">
+        <p class="hint">One-off cost. Placeholder, check the Nespresso site.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Your savings">
+      <p class="save-label">You could save</p>
+      <p class="big" id="save"></p>
+      <p class="after" id="after"></p>
+
+      <div class="bars">
+        <div>
+          <div class="bar-head"><span>Café coffee · per year</span><span id="cafeYear"></span></div>
+          <div class="track"><div class="fill cafe" id="cafeBar"></div></div>
+        </div>
+        <div>
+          <div class="bar-head"><span>At home · per year</span><span id="homeYear"></span></div>
+          <div class="track"><div class="fill home" id="homeBar"></div></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="v" id="perCup"></div><div class="l">saved per cup</div></div>
+        <div class="stat"><div class="v" id="weeks"></div><div class="l">for the machine to pay for itself</div></div>
+        <div class="stat"><div class="v" id="perMonth"></div><div class="l">saved per month</div></div>
+      </div>
+
+      <table class="tbl">
+        <thead>
+          <tr><th>Period</th><th>Café</th><th>Nespresso, incl. machine</th><th>Difference</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1 month</td><td id="c1"></td><td id="n1"></td><td id="d1" class="diff"></td></tr>
+          <tr><td>6 months</td><td id="c6"></td><td id="n6"></td><td id="d6" class="diff"></td></tr>
+          <tr><td>1 year</td><td id="c12"></td><td id="n12"></td><td id="d12" class="diff"></td></tr>
+        </tbody>
+      </table>
+
+      <div class="cta">
+        <a class="solid" href="https://www.nespresso.com/au/en/order/capsules/original" target="_blank" rel="noopener">Explore Nespresso capsules →</a>
+        <a class="ghost" href="https://www.nespresso.com/au/en/order/machines" target="_blank" rel="noopener">Explore Nespresso machines →</a>
+      </div>
+    </section>
+  </div>
+  <p class="foot">Based on 52 weeks a year. Capsule price from Nespresso Australia.</p>
+</div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = "week";
+
+  function money(n, dp) {
+    var neg = n < 0;
+    var s = Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 });
+    return (neg ? "-$" : "$") + s;
+  }
+  function paint(el) {
+    var p = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty("--p", p + "%");
+  }
+
+  function update() {
+    var cafe = parseFloat($("cafe").value);
+    var cap = parseFloat($("cap").value);
+    var mach = parseFloat($("mach").value);
+    var perWeekCups = mode === "day" ? parseFloat($("cups").value) * 7 : parseFloat($("cups").value);
+
+    $("cafeOut").textContent = money(cafe, 2);
+    $("capOut").textContent = money(cap, 2);
+    $("machOut").textContent = money(mach);
+    $("cupsOut").textContent = $("cups").value + " / " + mode;
+    ["cafe", "cups", "cap", "mach"].forEach(function (id) { paint($(id)); });
+
+    var cafeYear = cafe * perWeekCups * 52;
+    var homeYear = cap * perWeekCups * 52;
+    var gross = cafeYear - homeYear;
+    var net = gross - mach;
+    var perCup = cafe - cap;
+    var weekly = perCup * perWeekCups;
+
+    $("save").textContent = money(gross);
+    $("after").textContent = "every year — that's " + money(net) + " even after buying the machine";
+    $("cafeYear").textContent = money(cafeYear);
+    $("homeYear").textContent = money(homeYear);
+    var max = Math.max(cafeYear, homeYear, 1);
+    $("cafeBar").style.width = (cafeYear / max * 100) + "%";
+    $("homeBar").style.width = (homeYear / max * 100) + "%";
+    $("perCup").textContent = money(perCup, 2);
+    $("perMonth").textContent = money(gross / 12);
+    $("weeks").textContent = weekly > 0 ? Math.round(mach / weekly) + " weeks" : "n/a";
+
+    var wk = { "1": 52 / 12, "6": 26, "12": 52 };
+    ["1", "6", "12"].forEach(function (k) {
+      var c = cafe * perWeekCups * wk[k];
+      var n = cap * perWeekCups * wk[k] + mach;
+      var d = c - n;
+      $("c" + k).textContent = money(c);
+      $("n" + k).textContent = money(n);
+      var el = $("d" + k);
+      el.textContent = d >= 0 ? money(d) + " saved" : money(-d) + " more";
+      el.className = "diff " + (d >= 0 ? "pos" : "neg");
+    });
+  }
+
+  function setMode(m) {
+    if (m === mode) return;
+    var c = $("cups");
+    var v = parseFloat(c.value);
+    if (m === "day") {
+      c.min = 1; c.max = 5;
+      c.value = Math.min(5, Math.max(1, Math.round(v / 7)));
+    } else {
+      c.min = 1; c.max = 21;
+      c.value = Math.min(21, Math.max(1, Math.round(v * 7)));
+    }
+    mode = m;
+    $("perDay").classList.toggle("on", m === "day");
+    $("perWeek").classList.toggle("on", m === "week");
+    update();
+  }
+
+  $("perDay").addEventListener("click", function () { setMode("day"); });
+  $("perWeek").addEventListener("click", function () { setMode("week"); });
+  ["cafe", "cups", "cap", "mach"].forEach(function (id) { $(id).addEventListener("input", update); });
+  update();
+</script>
+</body>
+</html>
